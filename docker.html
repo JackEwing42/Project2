@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docker Commands & Dockerfile Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    header {
+      background: #0db7ed;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    section {
+      background: white;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    h2 {
+      color: #0db7ed;
+    }
+
+    code {
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 5px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Docker Cheat Sheet</h1>
+  <p>Basic Docker Commands & Dockerfile Reference</p>
+</header>
+
+<section>
+  <h2>Basic Docker Commands</h2>
+  <ul>
+    <li><code>docker --version</code> - Show Docker version</li>
+    <li><code>docker build -t &lt;name&gt; .</code> - Build image from Dockerfile</li>
+    <li><code>docker run &lt;image&gt;</code> - Run a container</li>
+    <li><code>docker ps</code> - List running containers</li>
+    <li><code>docker ps -a</code> - List all containers (including stopped)</li>
+    <li><code>docker stop &lt;container_id&gt;</code> - Stop a container</li>
+    <li><code>docker rm &lt;container_id&gt;</code> - Remove a container</li>
+    <li><code>docker rmi &lt;image_id&gt;</code> - Remove an image</li>
+    <li><code>docker images</code> - List images</li>
+    <li><code>docker exec -it &lt;container_id&gt; bash</code> - Access a running container</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Common Dockerfile Instructions</h2>
+  <pre><code># Start from a base image
+FROM node:14
+
+# Set working directory
+WORKDIR /app
+
+# Copy files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy app source
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "app.js"]
+</code></pre>
+
+  <p><strong>Instruction Summary:</strong></p>
+  <ul>
+    <li><code>FROM</code> - Base image</li>
+    <li><code>WORKDIR</code> - Working directory in the container</li>
+    <li><code>COPY</code> - Copy files from host to image</li>
+    <li><code>RUN</code> - Run commands during build</li>
+    <li><code>EXPOSE</code> - Declare the port the container listens on</li>
+    <li><code>CMD</code> - Default command to run on container start</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Created for Docker learning purposes - 2025</p>
+</footer>
+
+</body>
+</html>
+
