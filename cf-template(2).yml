@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: >-
-  Testing area for AWS: This CloudFormation template builds a linux VM for CEG 2350 @ WSU.
+Description: >- 
+  CF Template to create a VPC that will allow SSH access from trusted networks and create a single instance with an Elastic IP address
 Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
@@ -11,36 +11,36 @@ Parameters:
     Type: String
     MinLength: '9' # 1.1.1.1/0
     MaxLength: '18' # 255.255.255.255/32
-    Default: 0.0.0.0/0
+    Default: 76.190.0.0/16
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 Mappings:
   AWSRegionAMI: # AMI for Ubuntu server in each supported region 
     us-east-1:   # N. Virginia
     # AMI ID for Ubuntu 20 (ubuntu + apt) - Amazon Linux 2 AMI ami-02e136e904f3da870 (ec2-user + yum)
-      HVM64: ami-09e67e426f25ce0d7 # TODO use AMI ID of choice
+      HVM64: ami-0360c520857e3138f
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
-      CidrBlock: 10.0.0.0/16
-      Tags:
+      CidrBlock: 192.168.0.0/23
+      Tags: EWING-CF-VPC
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: CEGXXXX VPC
+          Value: Project2 VPC
   Subnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: 10.0.0.0/24
-      Tags:
+      CidrBlock: 192.168.0.0/24
+      Tags: EWING-CF-Subnet
         - Key: Application
           Value: !Ref 'AWS::StackId'
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
     Properties:
-      Tags:
+      Tags: EWING-CF-IG
         - Key: Application
           Value: !Ref 'AWS::StackId'
   AttachGateway:
@@ -52,7 +52,7 @@ Resources:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
-      Tags:
+      Tags: EWING-CF-RT
         - Key: Application
           Value: !Ref 'AWS::StackId'
   Route:
@@ -87,11 +87,19 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: 130.108.0.0/16  # WSU CIDR
-        - IpProtocol: -1
-          FromPort: '-1'
-          ToPort: '-1'
-          CidrIp: 10.0.0.0/24
         - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 192.168.0.0/24
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+           - IpProtocol: tcp
+          FromPort: '8080'
+          ToPort: '8080'
+          CidrIp: 0.0.0.0/0
+           - IpProtocol: tcp
           FromPort: '1'
           ToPort: '65535'
           CidrIp: 0.0.0.0/0
@@ -99,9 +107,9 @@ Resources:
     Type: 'AWS::EC2::NetworkAcl'
     Properties:
       VpcId: !Ref VPC
-      Tags:
+      Tags: EWING-CF-NACL
         - Key: Name
-          Value: CEGXXX NACL
+          Value: Project2 NACL
         - Key: Application
           Value: !Ref 'AWS::StackId'
   InboundAllowAllRule:
@@ -139,11 +147,11 @@ Resources:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
       InstanceType: t2.micro
       KeyName: !Ref KeyName
-      Tags:
+      Tags: EWING-CF-PublicUbuntuInstance
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: CEGXXXX Ubuntu
+          Value: Project2 Ubuntu
       NetworkInterfaces:
         - GroupSet:
             - !Ref SecurityGroup
