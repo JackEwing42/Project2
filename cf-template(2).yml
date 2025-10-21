@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >- 
-  CF Template to create a VPC that will allow SSH access from trusted networks and create a single instance with an Elastic IP address
+  Ewing CF Template to create a VPC that will allow SSH access from trusted networks and create a single instance with an Elastic IP address
 Parameters:
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
