@@ -133,6 +133,15 @@ Resources:
       Egress: true
       RuleAction: allow
       CidrBlock: 0.0.0.0/0
+  OutboundDenyWttr:
+    Type: AWS::EC2::NetworkAclEntry
+    Propertires:
+      NetworkAclID: !Ref NetworkACL
+      RuleNumber: 50
+      Protocol: -1
+      Egress: true
+      RuleAction: deny
+      CidrBlock: 5.9.243.187/32
   SubnetNetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
@@ -159,14 +168,20 @@ Resources:
           DeviceIndex: '0'
           DeleteOnTermination: 'true'
           SubnetId: !Ref Subnet
-          PrivateIpAddress: 10.0.0.25
+          PrivateIpAddress: 192.168.0.5
       UserData:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
+            hostnamectl set-hostname EWING-AMI && \
             apt-get update && \
             apt-get install -y \
               git \
+              python3 \
+              python3-pip \
+              apache2 \
+              wamerican \
+              docker.io \
               htop \
               sl && \
             echo "This is from the CF template" > /home/ubuntu/hello.txt && \
