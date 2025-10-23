@@ -24,7 +24,9 @@ Resources:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 192.168.0.0/23
-      Tags: EWING-CF-VPC
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-VPC
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
@@ -34,13 +36,17 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 192.168.0.0/24
-      Tags: EWING-CF-Subnet
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-Subnet
         - Key: Application
           Value: !Ref 'AWS::StackId'
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
     Properties:
-      Tags: EWING-CF-IG
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-IG
         - Key: Application
           Value: !Ref 'AWS::StackId'
   AttachGateway:
@@ -52,7 +58,9 @@ Resources:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
-      Tags: EWING-CF-RT
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-RT
         - Key: Application
           Value: !Ref 'AWS::StackId'
   Route:
@@ -95,11 +103,11 @@ Resources:
           FromPort: '80'
           ToPort: '80'
           CidrIp: 0.0.0.0/0
-           - IpProtocol: tcp
+        - IpProtocol: tcp
           FromPort: '8080'
           ToPort: '8080'
           CidrIp: 0.0.0.0/0
-           - IpProtocol: tcp
+        - IpProtocol: tcp
           FromPort: '1'
           ToPort: '65535'
           CidrIp: 0.0.0.0/0
@@ -107,7 +115,9 @@ Resources:
     Type: 'AWS::EC2::NetworkAcl'
     Properties:
       VpcId: !Ref VPC
-      Tags: EWING-CF-NACL
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-NACL
         - Key: Name
           Value: Project2 NACL
         - Key: Application
@@ -135,8 +145,8 @@ Resources:
       CidrBlock: 0.0.0.0/0
   OutboundDenyWttr:
     Type: AWS::EC2::NetworkAclEntry
-    Propertires:
-      NetworkAclID: !Ref NetworkACL
+    Properties:
+      NetworkAclId: !Ref NetworkACL
       RuleNumber: 50
       Protocol: -1
       Egress: true
@@ -156,7 +166,9 @@ Resources:
       ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
       InstanceType: t2.micro
       KeyName: !Ref KeyName
-      Tags: EWING-CF-PublicUbuntuInstance
+      Tags: 
+        - Key: Project
+          Value: EWING-CF-PublicUbuntuInstance
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
