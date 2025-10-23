@@ -27,4 +27,13 @@
 &ensp; - Added `docker.io \`<br>
 
 
+### Notes to Self
+
+- Add new `Key` and `Value` for each new `Tag`
+- Make sure all rules in security group have the same indentation
+
+
+
 ### Layout
+
+[CF Template Concept Layout.pdf](https://github.com/user-attachments/files/23071327/CF.Template.Concept.Layout.pdf)
