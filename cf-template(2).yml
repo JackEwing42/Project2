@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >- 
   Ewing CF Template to create a VPC that will allow SSH access from trusted networks and create a single instance with an Elastic IP address
 Parameters:
-  KeyName: demo-KEY
+  KeyName: 'AWS::EC2::KeyPair::demo-KEY'
     Description: the demo key
     Type: 'AWS::EC2::KeyPair::KeyName'
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
