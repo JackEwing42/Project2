@@ -4,7 +4,8 @@ Description: >-
 Parameters:
   KeyName: 
     Description: the demo key
-    Type: 'AWS::EC2::KeyPair::demo-KEY'
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: demo-KEY
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   SSHLocation:
     Description: ' The IP address range that can be used to access the EC2 instance'
