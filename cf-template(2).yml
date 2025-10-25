@@ -160,20 +160,23 @@ Resources:
         Ref: Subnet
       NetworkAclId:
         Ref: NetworkACL
-  PublicUbuntuInstance:
-    Type: 'AWS::EC2::Instance'
-    DependsOn: AttachGateway
-    Properties:
-      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
-      InstanceType: t2.micro
-      KeyName: !Ref KeyName
-      Tags: 
-        - Key: Project
-          Value: EWING-CF-PublicUbuntuInstance
-        - Key: Application
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: Project2 Ubuntu
+ PublicUbuntuInstance:
+  Type: 'AWS::EC2::Instance'
+  DependsOn: AttachGateway
+  Properties:
+    ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
+    InstanceType: t2.micro
+    KeyName: !Ref KeyName
+    SubnetId: !Ref Subnet
+    SecurityGroupIds:
+      - !Ref SecurityGroup
+    Tags:
+      - Key: Project
+        Value: EWING-CF-PublicUbuntuInstance
+      - Key: Application
+        Value: !Ref 'AWS::StackId'
+      - Key: Name
+        Value: Project2 Ubuntu
       NetworkInterfaces:
         - GroupSet:
             - !Ref SecurityGroup
