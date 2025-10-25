@@ -1,92 +1,102 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: >- 
+Description: >-
   Ewing CF Template to create a VPC that will allow SSH access from trusted networks and create a single instance with an Elastic IP address
+
 Parameters:
-  KeyName: 
+  KeyName:
     Description: the demo key
-    Type: 'AWS::EC2::KeyPair::KeyName'
+    Type: AWS::EC2::KeyPair::KeyName
     Default: demo-KEY
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   SSHLocation:
-    Description: ' The IP address range that can be used to access the EC2 instance'
+    Description: The IP address range that can be used to access the EC2 instance
     Type: String
-    MinLength: '9' # 1.1.1.1/0
-    MaxLength: '18' # 255.255.255.255/32
+    MinLength: '9'
+    MaxLength: '18'
     Default: 76.190.0.0/16
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
 Mappings:
-  AWSRegionAMI: # AMI for Ubuntu server in each supported region 
-    us-east-1:   # N. Virginia
-    # AMI ID for Ubuntu 20 (ubuntu + apt) - Amazon Linux 2 AMI ami-02e136e904f3da870 (ec2-user + yum)
+  AWSRegionAMI:
+    us-east-1:
       HVM64: ami-0360c520857e3138f
+
 Resources:
   VPC:
-    Type: 'AWS::EC2::VPC'
+    Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 192.168.0.0/23
-      Tags: 
+      Tags:
         - Key: Project
           Value: EWING-CF-VPC
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref AWS::StackId
         - Key: Name
           Value: Project2 VPC
+
   Subnet:
-    Type: 'AWS::EC2::Subnet'
+    Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 192.168.0.0/24
-      Tags: 
+      Tags:
         - Key: Project
           Value: EWING-CF-Subnet
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref AWS::StackId
+
   InternetGateway:
-    Type: 'AWS::EC2::InternetGateway'
+    Type: AWS::EC2::InternetGateway
     Properties:
-      Tags: 
+      Tags:
         - Key: Project
           Value: EWING-CF-IG
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref AWS::StackId
+
   AttachGateway:
-    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
+
   RouteTable:
-    Type: 'AWS::EC2::RouteTable'
+    Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
-      Tags: 
+      Tags:
         - Key: Project
           Value: EWING-CF-RT
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref AWS::StackId
+
   Route:
-    Type: 'AWS::EC2::Route'
+    Type: AWS::EC2::Route
     DependsOn: AttachGateway
     Properties:
       RouteTableId: !Ref RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
+
   SubnetRouteTableAssociation:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref Subnet
       RouteTableId: !Ref RouteTable
+
   UbuntuIPAddress:
-    Type: 'AWS::EC2::EIP'
+    Type: AWS::EC2::EIP
     DependsOn: AttachGateway
     Properties:
       Domain: vpc
       InstanceId: !Ref PublicUbuntuInstance
+
   SecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+    Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: !Ref VPC
-      GroupDescription: Enable SSH access via port 22 and open all insternal ports.
+      GroupDescription: Enable SSH access via port 22 and open all internal ports.
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
@@ -95,7 +105,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
-          CidrIp: 130.108.0.0/16  # WSU CIDR
+          CidrIp: 130.108.0.0/16
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
@@ -112,17 +122,19 @@ Resources:
           FromPort: '1'
           ToPort: '65535'
           CidrIp: 0.0.0.0/0
+
   NetworkACL:
-    Type: 'AWS::EC2::NetworkAcl'
+    Type: AWS::EC2::NetworkAcl
     Properties:
       VpcId: !Ref VPC
-      Tags: 
+      Tags:
         - Key: Project
           Value: EWING-CF-NACL
         - Key: Name
           Value: Project2 NACL
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref AWS::StackId
+
   InboundAllowAllRule:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -135,6 +147,7 @@ Resources:
       PortRange:
         From: 1
         To: 65535
+
   OutboundAllowAllRule:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -144,6 +157,7 @@ Resources:
       Egress: true
       RuleAction: allow
       CidrBlock: 0.0.0.0/0
+
   OutboundDenyWttr:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -153,185 +167,63 @@ Resources:
       Egress: true
       RuleAction: deny
       CidrBlock: 5.9.243.187/32
+
   SubnetNetworkAclAssociation:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
-      SubnetId:
-        Ref: Subnet
-      NetworkAclId:
-        Ref: NetworkACL
-       NetworkAclId:
-        Ref: NetworkACL
-       PublicUbuntuInstance:
-        Type: 'AWS::EC2::Instance'
-        DependsOn: AttachGateway
-        Properties:
-          ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
-          InstanceType: t2.micro
-          KeyName: !Ref KeyName
-          SubnetId: !Ref Subnet
-          SecurityGroupIds:
-            - !Ref SecurityGroup
-          Tags:
-            - Key: Project
-              Value: EWING-CF-PublicUbuntuInstance
-            - Key: Application
-              Value: !Ref 'AWS::StackId'
-            - Key: Name
-              Value: Project2 Ubuntu
-      NetworkInterfaces:
-        - GroupSet:
-            - !Ref SecurityGroup
-          AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
-          DeleteOnTermination: 'true'
-          SubnetId: !Ref Subnet
-          PrivateIpAddress: 192.168.0.5
-          UserData:
-            Fn::Base64: |
-              #!/bin/bash -xe
-              hostnamectl set-hostname EWING-AMI && \
-              apt-get update && \
-              apt-get install -y \
-                git \
-                python3 \
-                python3-pip \
-                apache2 \
-                wamerican \
-                docker.io \
-                htop \
-                sl && \
-              echo "This is from the CF template" > /home/ubuntu/hello.txt && \
-              systemctl enable apache2
-              systemctl start apache2
-              cat <<'EOF' > /home/ubuntu/wordle.sh
-              #!/bin/bash
-              words=($(grep '^\w\w\w\w\w$' /usr/share/dict/words | tr '[a-z]' '[A-Z]'))
-              actual=${words[$[$RANDOM % ${#words[@]}]]}
-              end=false
-              guess_count=0
-              max_guess=6
-              
-              if [[ $1 == "unlimit" ]]; then
-                  max_guess=999999
-              fi
-              
-              while [[ $end != true ]]; do
-                  guess_count=$(( $guess_count + 1 ))
-                  if [[ $guess_count -le $max_guess ]]; then
-                      echo "Enter your guess ($guess_count / $max_guess):"
-                      read guess
-                      guess=$(echo $guess | tr '[a-z]' '[A-Z]')
-              
-                      if [[ " ${words[*]} " =~ " $guess " ]]; then
-                          output=""
-                          remaining=""
-              
-                          if [[ $actual == $guess ]]; then
-                              echo "You guessed right!"
-                              for ((i = 0; i < ${#actual}; i++)); do
-                                  output+="\033[30;102m ${guess:$i:1} \033[0m"
-                              done
-                              printf "$output\n"
-                              end=true
-                          else
-                              for ((i = 0; i < ${#actual}; i++)); do
-                                  if [[ "${actual:$i:1}" != "${guess:$i:1}" ]]; then
-                                      remaining+=${actual:$i:1}
-                                  fi
-                              done
-              
-                              for ((i = 0; i < ${#actual}; i++)); do
-                                  if [[ "${actual:$i:1}" != "${guess:$i:1}" ]]; then
-                                      if [[ "$remaining" == *"${guess:$i:1}"* ]]; then
-                                          output+="\033[30;103m ${guess:$i:1} \033[0m"
-                                          remaining=${remaining/"${guess:$i:1}"/}
-                                      else
-                                          output+="\033[30;107m ${guess:$i:1} \033[0m"
-                                      fi
-                                  else
-                                      output+="\033[30;102m ${guess:$i:1} \033[0m"
-                                  fi
-                              done
-              
-                              printf "$output\n"
-                          fi
-                      else
-                          echo "Please enter a valid word with 5 letters!"
-                          guess_count=$(( $guess_count - 1 ))
-                      fi
-                  else
-                      echo "You lose! The word is:"
-                      echo $actual
-                      end=true
-                  fi
-              done
-              EOF
-              chmod +x /home/ubuntu/wordle.sh
-              chown ubuntu:ubuntu /home/ubuntu/wordle.sh
-              cat <<'EOF' > /var/www/html/index.html
-              <!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>AWS Cloud Cuties</title>
-                  <style>
-                      body {
-                          background-color: #f0f8ff;
-                          font-family: 'Arial', sans-serif;
-                          color: #232f3e;
-                          margin: 0;
-                          padding: 20px;
-                          text-align: center;
-                      }
-                      h1 {
-                          font-size: 3em;
-                          margin-bottom: 0.5em;
-                          color: #ff9900;
-                      }
-                      p {
-                          font-size: 1.5em;
-                          margin: 20px 0;
-                      }
-                      .aws-button {
-                          background-color: #0073bb;
-                          border: none;
-                          border-radius: 25px;
-                          color: white;
-                          padding: 10px 20px;
-                          font-size: 1.2em;
-                          cursor: pointer;
-                          transition: background-color 0.3s;
-                      }
-                      .aws-button:hover {
-                          background-color: #005f8d;
-                      }
-                      .footer {
-                          margin-top: 50px;
-                          font-size: 0.8em;
-                          color: #555;
-                      }
-                      .cloud {
-                          font-size: 2em;
-                      }
-                  </style>
-              </head>
-              <body>
-              
-                  <h1>AWS Cloud Cuties ☁️</h1>
-                  <p>Welcome to your cloud adventure! Let’s explore AWS together!</p>
-                  <button class="aws-button" onclick="alert('You clicked the AWS button! 🚀')">Launch an EC2 Instance!</button>
-              
-                  <div class="footer">
-                      <p class="cloud">☁️ Love your cloud! ☁️</p>
-                  </div>
-              
-              </body>
-              </html>
-              EOF
-              systemctl restart apache2
-                systemctl enable docker
-                systemctl start docker
-                docker pull wsukduncan/cheatsheet 
-                docker run -d --restart unless-stopped -p 8080:80 wsukduncan/cheatsheet
+      SubnetId: !Ref Subnet
+      NetworkAclId: !Ref NetworkACL
+
+  PublicUbuntuInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: AttachGateway
+    Properties:
+      ImageId: !FindInMap [AWSRegionAMI, !Ref "AWS::Region", HVM64]
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SubnetId: !Ref Subnet
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      Tags:
+        - Key: Project
+          Value: EWING-CF-PublicUbuntuInstance
+        - Key: Application
+          Value: !Ref AWS::StackId
+        - Key: Name
+          Value: Project2 Ubuntu
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash -xe
+          hostnamectl set-hostname EWING-AMI
+          apt-get update -y
+          apt-get install -y git python3 python3-pip apache2 wamerican docker.io htop sl
+          echo "This is from the CF template" > /home/ubuntu/hello.txt
+          systemctl enable apache2
+          systemctl start apache2
+
+          # Create Wordle script
+          cat <<'EOF' > /home/ubuntu/wordle.sh
+          #!/bin/bash
+          words=($(grep '^\w\w\w\w\w$' /usr/share/dict/words | tr '[a-z]' '[A-Z]'))
+          actual=${words[$[$RANDOM % ${#words[@]}]]}
+          end=false
+          guess_count=0
+          max_guess=6
+          ...
+          EOF
+          chmod +x /home/ubuntu/wordle.sh
+          chown ubuntu:ubuntu /home/ubuntu/wordle.sh
+
+          # Create index.html
+          cat <<'EOF' > /var/www/html/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          ...
+          EOF
+
+          systemctl restart apache2
+          systemctl enable docker
+          systemctl start docker
+          docker pull wsukduncan/cheatsheet
+          docker run -d --restart unless-stopped -p 8080:80 wsukduncan/cheatsheet
+
